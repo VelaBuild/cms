@@ -1,0 +1,61 @@
+# Dependencies
+/vendor
+/node_modules
+
+# Build output
+/public/build
+/public/hot
+
+# Laravel
+/public/storage
+/storage/*.key
+bootstrap/cache/*.php
+
+# Environment
+.env
+.env.backup
+.env.production
+.env.staging
+.env.local
+
+# Testing
+/.phpunit.cache
+/.phpunit.result.cache
+.phpunit.result.cache
+
+# IDE / Editor
+/.idea
+/.vscode
+/.fleet
+*.swp
+*.swo
+*~
+
+# AI / Automation tools
+/.autocoder
+/.claude/settings.*
+/.claude/credentials*
+/.claude/statsig*
+/.claude/logs*
+/.claude/todos*
+/.claude/projects
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Legacy
+Homestead.json
+Homestead.yaml
+auth.json
+
+# Logs
+npm-debug.log
+yarn-error.log
+
+# Published Vela package assets (regenerated via artisan vendor:publish --tag=vela-assets)
+/public/vendor/vela
+
+# Static cache (remove this line after vela:install for deployment tracking)
+/resources/static/*
+!/resources/static/.gitkeep
