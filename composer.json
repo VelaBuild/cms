@@ -4,13 +4,20 @@
     "description": "Vela CMS — a ready-to-go project starter powered by Vela Core.",
     "keywords": ["cms", "vela", "laravel", "ai"],
     "license": "MIT",
+    "repositories": [
+        {
+            "type": "path",
+            "url": "../core",
+            "options": { "symlink": true }
+        }
+    ],
     "require": {
         "php": "^8.1",
         "guzzlehttp/guzzle": "^7.2",
         "laravel/framework": "^10.0|^11.0",
         "laravel/sanctum": "^3.2|^4.0",
         "laravel/tinker": "^2.8",
-        "velabuild/core": "dev-master"
+        "velabuild/core": "@dev"
     },
     "require-dev": {
         "fakerphp/faker": "^1.9.1",
@@ -61,6 +68,6 @@
             "pestphp/pest-plugin": true
         }
     },
-    "minimum-stability": "stable",
+    "minimum-stability": "dev",
     "prefer-stable": true
 }

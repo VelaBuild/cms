@@ -56,6 +56,99 @@ if (is_file($__envFile)) {
 }
 unset($__envFile, $__envLine, $__val);
 
+/*
+|--------------------------------------------------------------------------
+| Site Visibility: Holding Page Redirect
+|--------------------------------------------------------------------------
+|
+| When a holding page is active, redirect all public visitors before static
+| files are served. Reads the lightweight vela-site.php config (no DB, no
+| framework). Visitors with a session cookie pass through to Laravel where
+| the middleware performs proper auth checks for admin bypass.
+|
+*/
+
+$__siteConfigFile = dirname(__DIR__) . '/storage/app/vela-site.php';
+if (is_file($__siteConfigFile)) {
+    $__siteConf = @include $__siteConfigFile;
+    if (is_array($__siteConf)
+        && !empty($__siteConf['visibility_holding_page'])
+        && !empty($__siteConf['visibility_holding_page_slug'])
+    ) {
+        $__holdSlug = $__siteConf['visibility_holding_page_slug'];
+        $__scriptDir = rtrim(str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? '/index.php')), '/');
+        $__rawPath = rawurldecode(strtok($_SERVER['REQUEST_URI'] ?? '/', '?'));
+        $__reqPath = ($__scriptDir !== '' && strpos($__rawPath, $__scriptDir) === 0)
+            ? trim(substr($__rawPath, strlen($__scriptDir)), '/')
+            : trim($__rawPath, '/');
+
+        // Strip locale prefix (2-char or zh-Hans style) for comparison
+        $__pathForMatch = preg_replace('#^[a-z]{2}(-[A-Za-z]{2,4})?(/|$)#', '', $__reqPath);
+        $__pathForMatch = trim($__pathForMatch, '/');
+
+        // Paths that must never be intercepted
+        $__holdAllow = ['admin', 'vela', 'login', 'logout', 'register', 'password',
+            'storage', 'vendor', 'imgp', 'imgr', 'api', 'manifest.json', 'sw.js',
+            'offline', 'robots.txt', 'two-factor'];
+        $__holdFirst = explode('/', $__reqPath)[0] ?? '';
+
+        // Detect session cookie → likely logged-in user; let Laravel decide
+        $__appName = '';
+        $__ef = dirname(__DIR__) . '/.env';
+        if (is_file($__ef)) {
+            $__al = preg_grep('/^APP_NAME\s*=/m', file($__ef, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES));
+            if (!empty($__al)) {
+                $__appName = trim(explode('=', end($__al), 2)[1] ?? '');
+                $__appName = trim($__appName, '"\'');
+            }
+        }
+        $__sessName = strtolower(preg_replace('/[^a-zA-Z0-9]+/', '_', $__appName ?: 'laravel')) . '_session';
+        $__hasSession = isset($_COOKIE[$__sessName]);
+        unset($__ef, $__al, $__appName, $__sessName);
+
+        $__isHoldingPage = ($__pathForMatch === $__holdSlug || $__reqPath === $__holdSlug);
+        $__isAllowedPath = in_array($__holdFirst, $__holdAllow, true);
+
+        // Privacy page must always be accessible (GDPR requirement)
+        $__privacySlug = ltrim($__siteConf['gdpr_privacy_url'] ?? '/privacy', '/');
+        $__isPrivacyPage = ($__pathForMatch === $__privacySlug || $__reqPath === $__privacySlug);
+
+        if (!$__isHoldingPage && !$__isAllowedPath && !$__isPrivacyPage && !$__hasSession) {
+            $__holdUrl = $__scriptDir . '/' . $__holdSlug;
+            header('Location: ' . $__holdUrl, true, 302);
+            header('Cache-Control: no-cache, no-store');
+            exit;
+        }
+
+        // Session-having users (likely admins) must go through Laravel for proper
+        // auth check — disable static cache so the middleware can decide
+        if ($__hasSession) {
+            $__velaCache = false;
+        }
+
+        unset($__holdSlug, $__scriptDir, $__rawPath, $__reqPath, $__pathForMatch,
+              $__holdAllow, $__holdFirst, $__hasSession, $__isHoldingPage, $__isAllowedPath,
+              $__privacySlug, $__isPrivacyPage, $__holdUrl);
+    }
+    // x402: if AI payment is enabled, skip cache for AI agents so middleware can gate them
+    if (!empty($__siteConf['x402_enabled']) && !empty($__siteConf['x402_pay_to'])) {
+        $__ua = $_SERVER['HTTP_USER_AGENT'] ?? '';
+        $__aiBots = ['GPTBot','ChatGPT-User','OAI-SearchBot','ClaudeBot','Claude-Web','anthropic-ai',
+            'Google-Extended','CCBot','PerplexityBot','Bytespider','Amazonbot','Cohere-ai',
+            'AI2Bot','Applebot-Extended','FacebookBot','Diffbot','PetalBot'];
+        foreach ($__aiBots as $__bot) {
+            if (stripos($__ua, $__bot) !== false) {
+                $__velaCache = false;
+                break;
+            }
+        }
+        unset($__ua, $__aiBots, $__bot);
+    }
+
+    unset($__siteConf);
+}
+unset($__siteConfigFile);
+
 $__staticMethod = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 if ($__velaCache && $__staticMethod === 'GET') {
     $__staticRawUri = rawurldecode(strtok($_SERVER['REQUEST_URI'] ?? '/', '?'));
