@@ -109,6 +109,21 @@ The `SiteContext` service encapsulates this pattern for AI-related site metadata
 
 **Every view, block, JSON fixture, and PHP file follows [docs/ai/code-style.md](docs/ai/code-style.md)** — 4-space indent, LF, final newline, no trailing whitespace, Blade directives as indent levels, no trailing slash on HTML5 void elements, stacked-and-aligned `@include` arrays. Read the guide once; reference it on every PR.
 
+## Fonts (Required — GDPR)
+
+**All web fonts MUST be loaded from Bunny Fonts (`https://fonts.bunny.net`) — never Google Fonts (`fonts.googleapis.com` / `fonts.gstatic.com`).** Bunny Fonts is a drop-in GDPR-compliant mirror that supports the same `/css2?family=...` syntax. Google Fonts sets cookies and logs IPs, which is a GDPR violation in the EU.
+
+```html
+<!-- correct -->
+<link rel="preconnect" href="https://fonts.bunny.net" crossorigin>
+<link href="https://fonts.bunny.net/css2?family=Inter:wght@300..700&display=swap" rel="stylesheet">
+
+<!-- WRONG — never use -->
+<link href="https://fonts.googleapis.com/css2?family=Inter..." rel="stylesheet">
+```
+
+Same rule for `@import url(...)` inside CSS files. If you see `fonts.googleapis.com` anywhere in a template, layout, or stylesheet, change it.
+
 ## Image Handling (Required)
 
 **Every `<img>` rendered on the public site MUST go through the `vela_image()` helper.** Never hand-write `<img src="...">` for content images — that ships the original upload (often several MB) with no WebP, no resize, no srcset.
