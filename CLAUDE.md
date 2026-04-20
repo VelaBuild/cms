@@ -105,6 +105,29 @@ The `SiteContext` service encapsulates this pattern for AI-related site metadata
 - Blade views are in the template package's `resources/views/` directory
 - CSS variables for theming are stored in `VelaConfig` with keys prefixed `css_` (e.g., `css_--primary`)
 
+## Code Style (Required)
+
+**Every view, block, JSON fixture, and PHP file follows [docs/ai/code-style.md](docs/ai/code-style.md)** — 4-space indent, LF, final newline, no trailing whitespace, Blade directives as indent levels, no trailing slash on HTML5 void elements, stacked-and-aligned `@include` arrays. Read the guide once; reference it on every PR.
+
+## Image Handling (Required)
+
+**Every `<img>` rendered on the public site MUST go through the `vela_image()` helper.** Never hand-write `<img src="...">` for content images — that ships the original upload (often several MB) with no WebP, no resize, no srcset.
+
+```blade
+{!! vela_image($url, $alt, [640, 960, 1280, 1920], 'fit', ['class' => 'my-class']) !!}
+```
+
+- Emits `<img>` with `src` + `srcset` + `loading="lazy"`
+- Each URL is a signed `/imgp/{payload}` route served by `ImageController::webp()` (WebP if GD supports it, original format otherwise)
+- Pick widths based on the largest size the image will render at — e.g. hero: `[960, 1600, 2400]`; card thumb: `[320, 480, 640]`
+- `'fit'` preserves aspect ratio; `'crop'` centers and fills
+- Global `onerror` fallback in `_partials/scripts-footer.blade.php` rewrites `/imgp/` → `/imgr/` (same-format resize) if WebP decode fails in the browser
+- Config lives under `config('vela.images.*')` — `quality`, `max_width`, `max_height`, `default_sizes`
+
+Helper source: `core/src/Helpers/image.php`. Service: `core/src/Services/ImageOptimizer.php`. Controller: `core/src/Http/Controllers/ImageController.php`.
+
+The only exception is tiny static chrome (favicon, logos loaded from `public/images/`) where a single transform is fine — and even those are usually better served by `vela_image` so retina displays get a 2x.
+
 ## AI Services
 
 The AI system uses a provider abstraction — never instantiate AI service classes directly.

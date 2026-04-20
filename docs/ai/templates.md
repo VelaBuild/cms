@@ -48,6 +48,51 @@ Templates receive standard Vela view data through the public controllers. Site n
 
 ---
 
+## Row Width Standard (Required)
+
+Every Vela template **must** style two row-width classes emitted by the page builder. The page builder writes a `row-full` or `row-contained` class onto every `.page-row-public` element based on the row's `width` field.
+
+### The Contract
+
+Both classes must be styleable on `.page-row-public`:
+
+| Class | Meaning | What the template decides |
+|-------|---------|---------------------------|
+| `row-full` | Row spans the viewport edge-to-edge (for hero images, full-bleed banners, colored section backgrounds). | Nothing — this is always 100%. A baseline rule is shipped in `page-blocks.css`; templates generally do not override. |
+| `row-contained` | Row content is constrained to the template's standard reading width. | The `max-width` value and horizontal padding. This must match the template's primary container (e.g. `.co-container`, `.mn-container`, `.container-premium`) so content aligns with header/footer. |
+
+### What a template must do
+
+In the template's stylesheet (inline `<style>` in the layout or an external CSS file), define:
+
+```css
+/* Match this to the template's primary container width. */
+.page-row-public.row-contained {
+    max-width: 1200px;        /* ← template-specific */
+    padding-left: 24px;       /* ← template-specific */
+    padding-right: 24px;      /* ← template-specific */
+}
+```
+
+`row-full` inherits from the `page-blocks.css` baseline (`max-width: 100%; padding-left: 0; padding-right: 0;`) and does not normally need per-template styling. Override it only if the template intentionally insets full-width rows.
+
+### Why this is required
+
+The row width dropdown in the admin page editor saves `contained` or `full` on every row. The renderer emits the matching class. If a template does not style these classes, contained rows will fall back to the `page-blocks.css` baseline (1200px) and will not align with the rest of the template's chrome. Custom widths (760px for editorial, 1100px for minimal, 1400px for premium) only work if the template declares them.
+
+### Reference values
+
+| Template | Container class | `.row-contained` max-width |
+|----------|-----------------|----------------------------|
+| default | `.container-premium` | 1400px |
+| minimal | `.mn-container` | 1100px |
+| corporate | `.co-container` | 1200px |
+| dark | `.dk-container` | 1200px |
+| editorial | `.ed-container` | 1160px |
+| modern | `.md-container` | 1200px |
+
+---
+
 ## CSS Variable System
 
 ### How It Works
