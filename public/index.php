@@ -238,6 +238,21 @@ if ($__velaCache && $__staticMethod === 'GET') {
                 header('Content-Type: text/html; charset=UTF-8');
                 header('Cache-Control: public, max-age=300');
                 header('X-Static: true');
+
+                // Cloudflare Cache-Tag — written as a `.tags` sidecar by the
+                // static-site generator. Letting CF record the tag ↔ URL
+                // mapping here means purge-by-tag works even for pages we
+                // serve from disk without booting Laravel.
+                $__staticTagsFile = substr($__staticReal, 0, -5) . '.tags';
+                if (is_file($__staticTagsFile)) {
+                    $__staticTags = trim((string) file_get_contents($__staticTagsFile));
+                    if ($__staticTags !== '') {
+                        header('Cache-Tag: ' . $__staticTags);
+                    }
+                    unset($__staticTags);
+                }
+                unset($__staticTagsFile);
+
                 readfile($__staticReal);
                 exit;
             }
