@@ -29,6 +29,9 @@ class Kernel extends ConsoleKernel
 
     protected function commands(): void
     {
+        // App-level commands (e.g. vela:static-rewrite-urls)
+        $this->load(__DIR__.'/Commands');
+
         // Package commands are registered by VelaServiceProvider
         require base_path('routes/console.php');
     }

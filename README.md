@@ -168,6 +168,34 @@ AI_TEXT_PROVIDER=openai
 AI_IMAGE_PROVIDER=gemini
 ```
 
+## Deployment via static cache
+
+Vela can serve `resources/static/*.html` ahead of booting Laravel — commit that cache with the repo and your site loads without DB or PHP in the hot path. Because Blade bakes `APP_URL` into every `<link>`, `<meta og:image>`, logo `srcset`, etc., the committed HTML must reference the live domain, not `localhost`.
+
+Set `LIVE_URL` in `.env` once per machine:
+
+```
+LIVE_URL=https://example.com
+```
+
+Typical publish flow:
+
+```bash
+php artisan vela:generate-static --clear     # rebuild cache against local APP_URL
+php artisan vela:static-rewrite-urls         # APP_URL -> LIVE_URL (in-place rewrite)
+git add resources/static && git commit -m '…' && git push
+php artisan vela:static-rewrite-urls --reverse   # LIVE_URL -> APP_URL (restore local)
+```
+
+Additional options:
+
+```bash
+php artisan vela:static-rewrite-urls --dry-run
+php artisan vela:static-rewrite-urls --from=<url> --to=<url>
+```
+
+The command walks `resources/static/**/*.html` and does a literal `str_replace($from, $to)` on each file — deterministic, reversible, no in-process URL-generator magic. Sites free to wrap it in their own `pushgit.sh`-style script for an auto-rewrite-commit-reverse loop.
+
 ## Testing
 
 ```bash
