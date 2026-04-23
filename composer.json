@@ -6,9 +6,8 @@
     "license": "MIT",
     "repositories": [
         {
-            "type": "path",
-            "url": "../core",
-            "options": { "symlink": true }
+            "type": "vcs",
+            "url": "https://github.com/VelaBuild/core.git"
         }
     ],
     "require": {
@@ -17,7 +16,7 @@
         "laravel/framework": "^13.0",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^3.0",
-        "velabuild/core": "@dev"
+        "velabuild/core": "dev-master"
     },
     "require-dev": {
         "fakerphp/faker": "^1.9.1",
