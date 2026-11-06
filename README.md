@@ -79,18 +79,26 @@ This creates a Capacitor project in `/capacitor/`, installs platform dependencie
 
 ## Updating Vela Core
 
-CMS updates are delivered through Composer. Your site-level customisations (templates, config, routes, app overrides) are untouched by updates:
+CMS updates are delivered through Composer — almost all of Vela lives in `vendor/velabuild/core`:
 
 ```bash
 composer update velabuild/core
+php artisan vela:update            # migrations, public assets, theme tokens
 ```
 
-After updating, check for new migrations or publishable assets:
+The few starter files this repo gave you (`public/index.php`, `bootstrap/app.php`, `config/*`,
+`routes/*`, error pages, …) are managed by core too. A release that changes one is reported by
+`vela:update` and in the admin; files you never edited update safely, files you edited wait for you:
 
 ```bash
-php artisan migrate
-php artisan vendor:publish --tag=vela-assets --force
+php artisan vela:upgrade-files          # what changed (report only)
+php artisan vela:upgrade-files --auto   # apply the safe ones
+php artisan vela:upgrade-files -i       # review the rest: diff, overwrite, merge, keep, skip
 ```
+
+Or use **Settings → CMS files** in the admin. Every replaced file is backed up in
+`storage/app/vela-skeleton/backups/`. Put Vela config overrides in `config/vela.php` — it starts empty;
+the defaults live in core.
 
 ## Project Structure
 
